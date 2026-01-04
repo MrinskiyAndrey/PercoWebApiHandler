@@ -1,0 +1,10 @@
+{
+  "Login": "admin",
+  "Password": "qwerty123",
+  "PercoWebHost": "127.0.0.1",
+  "PathToLog": "Log.txt",
+  "NumberOfDaysEvents": 60,
+  "PathToPercoXML": "perco.xml",
+  "PathToNewEmployeesView": "D:\\scripts_from_percoserver\\PERCO.SQL",
+  "PathToPhotos": "\\photos_from_percoserver\\"
+}
