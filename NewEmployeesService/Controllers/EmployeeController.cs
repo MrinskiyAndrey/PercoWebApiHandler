@@ -53,8 +53,8 @@ namespace NewEmployeesService.Controllers
                                 Position = string.IsNullOrEmpty(employeeContent[0]) ? "(не определена)" : employeeContent[0],
                                 Division = string.IsNullOrEmpty(employeeContent[1]) ? "(не определено)" : employeeContent[1],
                                 TabelNumber = string.IsNullOrEmpty(employeeContent[2]) ? "(не определен)" : employeeContent[2],
-                                FirstName = string.IsNullOrEmpty(employeeContent[3]) ? "(не определена)" : employeeContent[3],
-                                LastName = string.IsNullOrEmpty(employeeContent[4]) ? "(не определено)" : employeeContent[4],
+                                FirstName = string.IsNullOrEmpty(employeeContent[4]) ? "(не определена)" : employeeContent[4],
+                                LastName = string.IsNullOrEmpty(employeeContent[3]) ? "(не определено)" : employeeContent[3],
                                 MiddleName = string.IsNullOrEmpty(employeeContent[5]) ? "(не определено)" : employeeContent[5]
 
                             });
@@ -131,7 +131,7 @@ namespace NewEmployeesService.Controllers
                 
                 if ( responseBody.Contains("result"))
                 {
-                    Logger.Log($"Успешно изменен существующий сотрудник {employee.FirstName} {employee.LastName} {employee.MiddleName}" +
+                    Logger.Log($"Успешно изменен существующий сотрудник  {employee.LastName} {employee.FirstName} {employee.MiddleName}" +
                         $" табельный номер: '{employee.TabelNumber}' ID: '{employee.Id}'");
                     if(employee.TabelNumber != null)
                     {
@@ -172,7 +172,7 @@ namespace NewEmployeesService.Controllers
                         {
                             employee.Id = JsonSerializer.Deserialize<IdData>(responseBody)?.Id;
 
-                            Logger.Log($"Успешно добавлен новый сотрудник: '{employee.FirstName}' '{employee.LastName}' '{employee.MiddleName}',  " +
+                            Logger.Log($"Успешно добавлен новый сотрудник:  '{employee.LastName}' '{employee.FirstName}' '{employee.MiddleName}',  " +
                                 $"табельный номер: '{employee.TabelNumber}' в PercoWeb, id: '{employee.Id}',");
 
                             if (employee.TabelNumber != null)
@@ -189,7 +189,7 @@ namespace NewEmployeesService.Controllers
                         else
                         {
                             Logger.Log($"Неизвестная ошибка при добавлении нового сотрудника" +
-                                $" {employee.FirstName} {employee.LastName} {employee.MiddleName} табельный номер {employee.TabelNumber} Должность: {employee.Position} " +
+                                $"  {employee.LastName} {employee.FirstName} {employee.MiddleName} табельный номер {employee.TabelNumber} Должность: {employee.Position} " +
                                 $" в NewEmployeesService.Controllers.EmployeeController.AddEmployee: {responseBody}");
                         }
 

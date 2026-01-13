@@ -44,7 +44,7 @@ namespace UnloadingEventsService.Controllers
             var beginDatetime = DateTime.Now.AddDays(NumberOfDaysEvents * -1).ToString("yyyy-MM-dd HH:mm");
             var endDatetime = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
 
-            string urlGetEvents = $"eventsystem?beginDatetime={beginDatetime}&endDatetime={endDatetime}&filters={filtersJson}&token={token}";
+            string urlGetEvents = $"eventsystem?beginDatetime={beginDatetime}&endDatetime={endDatetime}&filters={filtersJson}&rows=10000&token={token}";
             
 
             try
@@ -52,20 +52,18 @@ namespace UnloadingEventsService.Controllers
                 // Получаем общее количество страниц событий
                 var response = await client.GetAsync(urlGetEvents);
                 var responseBody = await response.Content.ReadAsStringAsync();
-                Console.WriteLine(responseBody);
                 var totalPages =  JsonSerializer.Deserialize<ApiResponse>(responseBody)?.Total;
 
                 // Циклом получаем все страницы
                 for (int i = 1; i <= totalPages; i++) // перебор страниц
                 {
-                    string urlPageEvents = $"eventsystem?beginDatetime={beginDatetime}&endDatetime={endDatetime}&filters={filtersJson}&page={i}&token={token}";
+                    string urlPageEvents = $"eventsystem?beginDatetime={beginDatetime}&endDatetime={endDatetime}&filters={filtersJson}&page={i}&rows=10000&token={token}";
                     response = await client.GetAsync(urlPageEvents);
                     responseBody = await response.Content.ReadAsStringAsync();
                     var Page =  JsonSerializer.Deserialize<ApiResponse>(responseBody);
 
                     if (Page?.Rows != null )
                     {
-
                         foreach (var eventRow in Page.Rows) // перебор рядов
                         {
                             // Конвертация серии и номера карты в идентификатор
@@ -89,19 +87,47 @@ namespace UnloadingEventsService.Controllers
                             }
 
 
-                            if ((eventRow.EventNameId == 17) && (eventRow.TabelNumber != "") && (eventRow.TabelNumber != null))
+                            // Отбор входов и добавление в strEvents
+                            if(eventRow.ZoneExitId == 1 && (eventRow.ZoneEnterId == 13739 || eventRow.ZoneEnterId == 28439844))
                             {
-                                
-
-                                strEvents += string.Concat(eventRow.TabelNumber, ";",
-                                ((eventRow.ZoneEnterId > 1) ? 0 : 1),
-                                $";{eventRow.TimeLabel?.Substring(11)};{eventRow.TimeLabel?.Substring(0, eventRow.TimeLabel.Length - 9)};",
-                                eventRow.Identifier, Environment.NewLine);
+                                if(eventRow.EventNameId == 17 || eventRow.EventNameId == 529)
+                                {
+                                    if(eventRow.TabelNumber != null && eventRow.TabelNumber != "")
+                                    {
+                                        strEvents += $"{eventRow.TabelNumber};0; {eventRow.TimeLabel?.Substring(11)};" +
+                                            $"{eventRow.TimeLabel?.Substring(0, eventRow.TimeLabel.Length - 9)};{eventRow.Identifier}{Environment.NewLine}";
+                                    }
+                                }
                             }
+                            //Отбор выходов и добавление в strEvents
+                            if ((eventRow.ZoneExitId == 13739 || eventRow.ZoneExitId == 28439844) && eventRow.ZoneEnterId == 1)
+                            {
+                                if (eventRow.EventNameId == 17 || eventRow.EventNameId == 529)
+                                {
+                                    if (eventRow.TabelNumber != null && eventRow.TabelNumber != "")
+                                    {
+                                        strEvents += $"{eventRow.TabelNumber};1; {eventRow.TimeLabel?.Substring(11)};" +
+                                            $"{eventRow.TimeLabel?.Substring(0, eventRow.TimeLabel.Length - 9)};{eventRow.Identifier}{Environment.NewLine}";
+                                    }
+                                }
+                            }
+
+
+
+
+                            // Отбираем только успешные проходы сотрудников с табельными номерами
+                            //if ((eventRow.EventNameId == 17) && (eventRow.TabelNumber != "") && (eventRow.TabelNumber != null))
+                            //{
+                            //    strEvents += string.Concat(eventRow.TabelNumber, ";",
+                            //    ((eventRow.ZoneEnterId > 1) ? 0 : 1),
+                            //    $";{eventRow.TimeLabel?.Substring(11)};{eventRow.TimeLabel?.Substring(0, eventRow.TimeLabel.Length - 9)};",
+                            //    eventRow.Identifier, Environment.NewLine);
+                            //}
                             
                         }
                     }
                     // Конец страницы
+                    Console.WriteLine($"Отработанна страница {i} из {totalPages}");
                 }
 
 

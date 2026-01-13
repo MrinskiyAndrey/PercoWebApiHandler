@@ -107,7 +107,7 @@ namespace UnloadingEventsService.Models
         public string? PositionName { get; set; }
 
         [JsonPropertyName("position")]
-        public int Position { get; set; }
+        public int? Position { get; set; }
 
         [JsonPropertyName("description")]
         public string? Description { get; set; }
