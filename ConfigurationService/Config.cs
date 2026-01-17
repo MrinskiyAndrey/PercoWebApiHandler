@@ -9,10 +9,11 @@ namespace ConfigurationService
     {
         
         public string Login { get; set; } = "admin";
-        public string Password { get; set; } = "qwerty123";
+        public string Password { get; set; } = "Qaz123()";
         public int NumberOfDaysEvents { get; set; } = 60;
         public string PathToPercoXML { get; set; } = "perco.xml";
         public string PathToNewEmployeesView { get; set; } = @"D:\scripts_from_percoserver\PERCO.SQL";
+        public string PathToUsersForAccessTemplate { get; set; } = @"C:\Accesses\";
         public string PathToPhotos { get; set; } = @"\photos_from_percoserver\";
 
         private static readonly string FileName = "Config.json";

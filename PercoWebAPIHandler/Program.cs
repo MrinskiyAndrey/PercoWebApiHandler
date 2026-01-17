@@ -37,5 +37,7 @@ _ = Task.Run(async () =>
 app.MapGet("/", () => ConfigurationService.Logger.ReadLogFile());
 
 
+app.MapGet($"/MassAccess", (string file, string access) => MassAccessService.MassAccess.MainMethod(file, access));
+
 
 app.Run();

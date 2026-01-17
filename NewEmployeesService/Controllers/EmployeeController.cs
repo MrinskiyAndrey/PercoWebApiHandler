@@ -115,13 +115,11 @@ namespace NewEmployeesService.Controllers
         }
 
 
-        public static async Task EditEmployee(HttpClient client, string token, EmployeeData employee, List<string>tabelListForDelete)
+        public static async Task EditEmployee(HttpClient client, string token, EmployeeData employee, List<string>?tabelListForDelete = null)
         {
-            if (employee.Id != null)
-            {
 
-            }
             var url = $"users/staff/{employee.Id}?token={token}";
+
             try
             {
                 var employeeJson = JsonSerializer.Serialize(employee);
@@ -133,9 +131,10 @@ namespace NewEmployeesService.Controllers
                 {
                     Logger.Log($"Успешно изменен существующий сотрудник  {employee.LastName} {employee.FirstName} {employee.MiddleName}" +
                         $" табельный номер: '{employee.TabelNumber}' ID: '{employee.Id}'");
-                    if(employee.TabelNumber != null)
+                    
+                    if(employee.TabelNumber != null && tabelListForDelete != null)
                     {
-                        tabelListForDelete.Add(employee.TabelNumber);
+                        tabelListForDelete?.Add(employee.TabelNumber);
                     }
                 }
                 else
@@ -215,19 +214,32 @@ namespace NewEmployeesService.Controllers
         }
 
 
-        public static async Task GetEmployeeById(HttpClient client, string token, int id)
+        public static async Task<EmployeeData?> GetEmployeeById(HttpClient client, string token, int id)
         {
             var url = $"users/staff/{id}?token={token}";
 
-            var response = await client.GetAsync(url);
-            var responseBody = await response.Content.ReadAsStringAsync();
-            Console.WriteLine(responseBody);
+            try
+            {
+                var response = await client.GetAsync(url);
+                var responseBody = await response.Content.ReadAsStringAsync();
+                var employee = JsonSerializer.Deserialize<EmployeeData>(responseBody);
+                return employee ?? null;
+            }
+            catch (Exception ex)
+            {
+
+                Logger.Log($"Ошибка получения сотрудника по ID в PercoWeb в NewEmployeesService.Controllers.EmployeeController.GetEmployeeById: {ex.Message}");
+                return null;
+            }
+            
+           
         }
 
         public static async Task<EmployeeFullListData?>GetEmployeeByTabelNumber(HttpClient client, string token, string tabelNumber)
         {
             var allEmployees = await GetAllEmployeesFromPerco(client, token);
 
+            
             return allEmployees?.FirstOrDefault(emp =>  emp.TabelNumber == tabelNumber);
 
         }
