@@ -22,13 +22,13 @@ namespace UnloadingEventsService.Controllers
 
         public static async Task<string> GetEvents(HttpClient client, string token, int NumberOfDaysEvents)
         {
-            //string strEvents = string.Empty;
+
             StringBuilder strEvents = new StringBuilder();
 
             // Зоны вход в которые хотим получить
             var columns = new List<Columns>
             {
-                new Columns {column = "in", value = "1"}, // Некотнтролируемая территория
+                new Columns {column = "in", value = "1"}, // Неконтролируемая территория
                 new Columns {column = "in", value = "13739"}, // КПП
                 new Columns {column = "in", value = "28439844"} // КПП2
             };
@@ -86,8 +86,6 @@ namespace UnloadingEventsService.Controllers
                                 }
                             }
 
-
-
                             if (!string.IsNullOrEmpty(eventRow.TabelNumber) && (eventRow.EventNameId == 17 || eventRow.EventNameId == 529))
                             {
                                 int? direction = null;
@@ -103,40 +101,11 @@ namespace UnloadingEventsService.Controllers
                                 }
                             }
 
-
-                            // Отбор входов и добавление в strEvents
-                            //if(eventRow.ZoneExitId == 1 && (eventRow.ZoneEnterId == 13739 || eventRow.ZoneEnterId == 28439844))
-                            //{
-                            //    if(eventRow.EventNameId == 17 || eventRow.EventNameId == 529)
-                            //    {
-                            //        if(eventRow.TabelNumber != null && eventRow.TabelNumber != "")
-                            //        {
-                            //            strEvents += $"{eventRow.TabelNumber};0; {eventRow.TimeLabel?.Substring(11)};" +
-                            //                $"{eventRow.TimeLabel?.Substring(0, eventRow.TimeLabel.Length - 9)};{eventRow.Identifier}{Environment.NewLine}";
-                            //        }
-                            //    }
-                            //}
-                            ////Отбор выходов и добавление в strEvents
-                            //if ((eventRow.ZoneExitId == 13739 || eventRow.ZoneExitId == 28439844) && eventRow.ZoneEnterId == 1)
-                            //{
-                            //    if (eventRow.EventNameId == 17 || eventRow.EventNameId == 529)
-                            //    {
-                            //        if (eventRow.TabelNumber != null && eventRow.TabelNumber != "")
-                            //        {
-                            //            strEvents += $"{eventRow.TabelNumber};1; {eventRow.TimeLabel?.Substring(11)};" +
-                            //                $"{eventRow.TimeLabel?.Substring(0, eventRow.TimeLabel.Length - 9)};{eventRow.Identifier}{Environment.NewLine}";
-                            //        }
-                            //    }
-                            //}
-
-
-
                         }
                     }
                     // Конец страницы
                     Console.WriteLine($"Отработанна страница {i} из {totalPages}");
                 }
-
 
                 return strEvents.ToString();
             }
@@ -147,34 +116,6 @@ namespace UnloadingEventsService.Controllers
             }
         }
 
-        public static string PreparationForUnloadingEvents(ApiResponse apiResponse)
-        {
-            string strEvents = string.Empty;
-
-
-            if (apiResponse?.Rows != null)
-            {
-                foreach (var row in apiResponse.Rows)
-                {
-                    if (row.Identifier != null)
-                    {
-                        if (row.Identifier.Contains('/'))
-                        {
-                            row.Identifier = row.Identifier.Replace("/", "");
-                        }
-                    }
-                }
-                foreach (var eventRow in apiResponse.Rows)
-                {
-
-                    strEvents += string.Concat(eventRow.TabelNumber, ";",
-                        ((eventRow.ZoneEnterId > 1) ? 0 : 1),
-                        $";{eventRow.TimeLabel?.Substring(11)};{eventRow.TimeLabel?.Substring(0, eventRow.TimeLabel.Length - 9)};",
-                        eventRow.Identifier, Environment.NewLine);
-                }
-            }
-            return strEvents;
-        }
 
     }
 }
