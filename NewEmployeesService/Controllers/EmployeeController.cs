@@ -139,12 +139,14 @@ namespace NewEmployeesService.Controllers
                 }
                 else
                 {
-                    Logger.Log($"Ошибка: \n{responseBody}");
+                    Logger.Log($"[Ошибка изменения сотрудника в NewEmployeesService.Controllers.EmployeeController.EditEmployee] \n" +
+                        $"{employee.LastName} {employee.FirstName} {employee.MiddleName} " +
+                        $"табельный номер: '{employee.TabelNumber}' ID: '{employee.Id}'\n ResponseBody:{responseBody}");
                 }
             }
             catch (Exception ex)
             {
-                Logger.Log($"Ошибка изменения сотрудника в PercoWeb в NewEmployeesService.Controllers.EmployeeController.RechangeEmployee: {ex.Message}");
+                Logger.Log($"Ошибка изменения сотрудника в NewEmployeesService.Controllers.EmployeeController.EditEmployee: {ex.Message}");
             }
         }
 

@@ -22,8 +22,8 @@ namespace UnloadingEventsService.Controllers
 
         public static async Task<string> GetEvents(HttpClient client, string token, int NumberOfDaysEvents)
         {
-            string strEvents = string.Empty;
-
+            //string strEvents = string.Empty;
+            StringBuilder strEvents = new StringBuilder();
 
             // Зоны вход в которые хотим получить
             var columns = new List<Columns>
@@ -87,43 +87,50 @@ namespace UnloadingEventsService.Controllers
                             }
 
 
+
+                            if (!string.IsNullOrEmpty(eventRow.TabelNumber) && (eventRow.EventNameId == 17 || eventRow.EventNameId == 529))
+                            {
+                                int? direction = null;
+
+                                if(eventRow.ZoneExitId == 1 && (eventRow.ZoneEnterId == 13739 || eventRow.ZoneEnterId == 28439844)) direction = 0; // Вход
+                                else if ((eventRow.ZoneExitId == 13739 || eventRow.ZoneExitId == 28439844) && eventRow.ZoneEnterId == 1) direction = 1; // Выход
+
+
+                                if (direction.HasValue)
+                                {
+                                    strEvents.AppendLine($"{eventRow.TabelNumber};{direction};{eventRow.TimeLabel?.Substring(11)};" +
+                                        $"{eventRow.TimeLabel?.Substring(0, eventRow.TimeLabel.Length - 9)};{eventRow.Identifier}");
+                                }
+                            }
+
+
                             // Отбор входов и добавление в strEvents
-                            if(eventRow.ZoneExitId == 1 && (eventRow.ZoneEnterId == 13739 || eventRow.ZoneEnterId == 28439844))
-                            {
-                                if(eventRow.EventNameId == 17 || eventRow.EventNameId == 529)
-                                {
-                                    if(eventRow.TabelNumber != null && eventRow.TabelNumber != "")
-                                    {
-                                        strEvents += $"{eventRow.TabelNumber};0; {eventRow.TimeLabel?.Substring(11)};" +
-                                            $"{eventRow.TimeLabel?.Substring(0, eventRow.TimeLabel.Length - 9)};{eventRow.Identifier}{Environment.NewLine}";
-                                    }
-                                }
-                            }
-                            //Отбор выходов и добавление в strEvents
-                            if ((eventRow.ZoneExitId == 13739 || eventRow.ZoneExitId == 28439844) && eventRow.ZoneEnterId == 1)
-                            {
-                                if (eventRow.EventNameId == 17 || eventRow.EventNameId == 529)
-                                {
-                                    if (eventRow.TabelNumber != null && eventRow.TabelNumber != "")
-                                    {
-                                        strEvents += $"{eventRow.TabelNumber};1; {eventRow.TimeLabel?.Substring(11)};" +
-                                            $"{eventRow.TimeLabel?.Substring(0, eventRow.TimeLabel.Length - 9)};{eventRow.Identifier}{Environment.NewLine}";
-                                    }
-                                }
-                            }
-
-
-
-
-                            // Отбираем только успешные проходы сотрудников с табельными номерами
-                            //if ((eventRow.EventNameId == 17) && (eventRow.TabelNumber != "") && (eventRow.TabelNumber != null))
+                            //if(eventRow.ZoneExitId == 1 && (eventRow.ZoneEnterId == 13739 || eventRow.ZoneEnterId == 28439844))
                             //{
-                            //    strEvents += string.Concat(eventRow.TabelNumber, ";",
-                            //    ((eventRow.ZoneEnterId > 1) ? 0 : 1),
-                            //    $";{eventRow.TimeLabel?.Substring(11)};{eventRow.TimeLabel?.Substring(0, eventRow.TimeLabel.Length - 9)};",
-                            //    eventRow.Identifier, Environment.NewLine);
+                            //    if(eventRow.EventNameId == 17 || eventRow.EventNameId == 529)
+                            //    {
+                            //        if(eventRow.TabelNumber != null && eventRow.TabelNumber != "")
+                            //        {
+                            //            strEvents += $"{eventRow.TabelNumber};0; {eventRow.TimeLabel?.Substring(11)};" +
+                            //                $"{eventRow.TimeLabel?.Substring(0, eventRow.TimeLabel.Length - 9)};{eventRow.Identifier}{Environment.NewLine}";
+                            //        }
+                            //    }
                             //}
-                            
+                            ////Отбор выходов и добавление в strEvents
+                            //if ((eventRow.ZoneExitId == 13739 || eventRow.ZoneExitId == 28439844) && eventRow.ZoneEnterId == 1)
+                            //{
+                            //    if (eventRow.EventNameId == 17 || eventRow.EventNameId == 529)
+                            //    {
+                            //        if (eventRow.TabelNumber != null && eventRow.TabelNumber != "")
+                            //        {
+                            //            strEvents += $"{eventRow.TabelNumber};1; {eventRow.TimeLabel?.Substring(11)};" +
+                            //                $"{eventRow.TimeLabel?.Substring(0, eventRow.TimeLabel.Length - 9)};{eventRow.Identifier}{Environment.NewLine}";
+                            //        }
+                            //    }
+                            //}
+
+
+
                         }
                     }
                     // Конец страницы
@@ -131,12 +138,12 @@ namespace UnloadingEventsService.Controllers
                 }
 
 
-                return strEvents;
+                return strEvents.ToString();
             }
             catch (Exception ex)
             {
                 Logger.Log($"Данные событий не получены {ex.Message}");
-                return strEvents;
+                return strEvents.ToString();
             }
         }
 
