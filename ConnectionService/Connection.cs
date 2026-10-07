@@ -11,8 +11,12 @@ namespace ConnectionService
 {
     public static class Connection
     {
-        public static HttpClient client = new HttpClient {BaseAddress = new Uri($"http://127.0.0.1/api/") };
-        
+        public static HttpClient client = new HttpClient
+        {
+            BaseAddress = new Uri($"http://127.0.0.1/api/"),
+            Timeout = TimeSpan.FromSeconds(90)
+        };
+
 
         public static async Task<string> GetPercoWebToken(HttpClient client, string login, string password)
         {

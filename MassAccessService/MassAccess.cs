@@ -31,6 +31,13 @@ namespace MassAccessService
                 // Create list of employees for the access template
                 var employeesForAccessTemplate = await AccessTemplatesController.CreateListOfEmployeesForAccessTemplate(client, token, usersOfAccess, allEmployees, accessTemplateId, config.PathToUsersForAccessTemplate);
 
+                //var options = new ParallelOptions { MaxDegreeOfParallelism = 10 };
+                //await Parallel.ForEachAsync(employeesForAccessTemplate, options, async (employee, ParToken) =>
+                //{
+                //    await NewEmployeesService.Controllers.EmployeeController.EditEmployee(client, token, employee);
+                //});
+
+
                 foreach (var employee in employeesForAccessTemplate)
                 {
                     await NewEmployeesService.Controllers.EmployeeController.EditEmployee(client, token, employee);

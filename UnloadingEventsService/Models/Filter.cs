@@ -8,8 +8,6 @@ namespace UnloadingEventsService.Models
     {
         //{"type": "", "rows": [{"column": "", "value": ""}]}
 
-        //{"type": "or", "rows": [{"column": "in", "value": "2"},{"column": "in", "value": "1"},{"column": "in", "value": "3"}]}
-
         public string? type { get; set; }
 
         public List<Columns>? rows { get; set; }

@@ -92,107 +92,191 @@ namespace MassAccessService.Controllers
         }
 
 
-
-
-
-
-        public static async Task<List<EmployeeData>> CreateListOfEmployeesForAccessTemplate(HttpClient client, string token, List<UserOfAccess> usersOfAccess, List<EmployeeFullListData> allEmployees, int AccessTemplateID, string pathToAccessFile)
+        private static async Task LogNotFoundedUsers(List<UserOfAccess> NotFoundedUsers, string path)
         {
-            List<EmployeeData> employeesForAccessTemplate = new List<EmployeeData>();
-            List<UserOfAccess> usersWithoutTabel = new List<UserOfAccess>();
+            var sb = new StringBuilder();
+            foreach(var user in NotFoundedUsers)
+            {
+                sb.AppendLine($"{user.FIO}, {user.Department}");
+            }
+            var fileName = Path.Combine(path, $"NotFoundedUsers{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.txt");
+            await File.WriteAllTextAsync(fileName, sb.ToString(), Encoding.UTF8);
+        }
 
-            StringBuilder strUsersWithoutTabel = new StringBuilder();
+        public static async Task<List<EmployeeData>> CreateListOfEmployeesForAccessTemplate(
+            HttpClient client, 
+            string token, 
+            List<UserOfAccess> usersOfAccess, 
+            List<EmployeeFullListData> allEmployees, 
+            int AccessTemplateID, 
+            string pathToAccessFile)
+        {
+            var employeesForAccessTemplate = new List<EmployeeData>();
+
+            //  Lookup с ключом по табельному номеру
+            var allEmployeeTabelMap = allEmployees
+                .Where(e => !string.IsNullOrEmpty(e.TabelNumber))
+                .ToLookup(e => e.TabelNumber);
+
+            //  Lookup с ключом по ФИО
+            var allEmployeeFioMap = allEmployees
+                .Where(e => !string.IsNullOrEmpty(e.LastName))
+                .ToLookup(e => $"{e.LastName} {e.FirstName} {e.MiddleName}".Trim().ToLower());
+
+            var targetEmployees = new List<EmployeeFullListData>();
+            var usersTrulyNotFound = new List<UserOfAccess>(); //  Пользователи, которых не удалось найти ни по табельному номеру, ни по ФИО
 
             foreach (var user in usersOfAccess)
             {
-                if (!string.IsNullOrEmpty(user.TabNumber))
+                IEnumerable<EmployeeFullListData>? found = null;
+
+                if(!string.IsNullOrEmpty(user.TabNumber))
+                    found = allEmployeeTabelMap[user.TabNumber];
+                else if(!string.IsNullOrEmpty(user.FIO))
+                    found = allEmployeeFioMap[user.FIO.Trim().ToLower()];
+                if(found != null && found.Any())
+                    targetEmployees.AddRange(found);
+                else
+                    usersTrulyNotFound.Add(user);
+            }
+
+            var options = new ParallelOptions { MaxDegreeOfParallelism = 10 };
+
+            await Parallel.ForEachAsync(targetEmployees, options, async (empl, tokenCancel) =>
+            {
+                try
                 {
+                    var responseBody = await client.GetStringAsync($"users/staff/{empl.Id}?token={token}", tokenCancel);
+                    var employeeExt = JsonSerializer.Deserialize<EmployeeExtensionData>(responseBody);
 
-                    foreach (var empl in allEmployees)
+                    if (employeeExt?.AccessTemplate != null)
                     {
+                        var templatesID = employeeExt.AccessTemplate
+                        .SelectMany(dict => dict.Keys)
+                        .Select(int.Parse)
+                        .ToList();
 
-                        if(empl.TabelNumber == user.TabNumber)
+                        if (!templatesID.Contains(AccessTemplateID) && !templatesID.Contains(649144485) && !templatesID.Contains(649144486))
                         {
-
-                            try
-                            {
-                                var url = $"users/staff/{empl.Id}?token={token}";
-
-                                var response = await client.GetAsync(url);
-                                var responseBody = await response.Content.ReadAsStringAsync();
-
-                                var employeeExt = JsonSerializer.Deserialize<EmployeeExtensionData>(responseBody);
-
-                                if (employeeExt?.AccessTemplate != null)
-                                {
-
-
-                                    var templatesID = employeeExt.AccessTemplate
-                                        .SelectMany(dict => dict.Keys)
-                                        .Select(int.Parse)
-                                        .ToList();
-
-                                    if (!templatesID.Contains(AccessTemplateID))
-                                    {
-                                        templatesID.Add(AccessTemplateID);
-                                    }
-                                    
-
-                                    var employe = new EmployeeData
-                                    {
-                                        Id = empl.Id,
-                                        LastName = empl.LastName,
-                                        FirstName = empl.FirstName,
-                                        MiddleName = empl.MiddleName,
-                                        Division = empl.DivisionId,
-                                        TabelNumber = empl.TabelNumber,
-                                        AccessTemplate = templatesID
-
-                                    };
-
-                                    employeesForAccessTemplate.Add(employe);
-                                }
-
-
-                            }
-                            catch (Exception ex )
-                            {
-
-                                Logger.Log($"Ошибка в MassAccessService.Controllers.AccessTemplatesController.CreateListOfEmployeesForAccessTemplate: {ex.Message} \n{empl.LastName} {empl.FirstName} divName: {empl.DivisionName} divID: {empl.DivisionId} ");
-                            }
-
-
+                            templatesID.Add(AccessTemplateID);
                         }
 
+                        employeesForAccessTemplate.Add(new EmployeeData
+                        {
+                            Id = empl.Id,
+                            LastName = empl.LastName,
+                            FirstName = empl.FirstName,
+                            MiddleName = empl.MiddleName,
+                            Division = empl.DivisionId,
+                            TabelNumber = empl.TabelNumber,
+                            AccessTemplate = templatesID
+                        });
                     }
 
                 }
-                else
+                catch (Exception ex)
                 {
-                    usersWithoutTabel.Add(user);
-                }
-            }
 
-            if(usersWithoutTabel != null && usersWithoutTabel.Count>0)
-            {
-                foreach (var user in usersWithoutTabel)
-                {
-                    strUsersWithoutTabel.Append(user.FIO);
-                    strUsersWithoutTabel.Append(", ");
-                    strUsersWithoutTabel.Append(user.Department);
-                    strUsersWithoutTabel.Append(Environment.NewLine);
+                    Logger.Log($"Ошибка в MassAccessService.Controllers.AccessTemplatesController.CreateListOfEmployeesForAccessTemplate:  \n{empl.LastName} {empl.FirstName} divName: {empl.DivisionName} divID: {empl.DivisionId}\n {ex.Message} ");
                 }
 
-                await File.WriteAllTextAsync(pathToAccessFile + $"WithoutTabel{DateTime.Now.ToString("yyyy-MM-dd")}.txt", strUsersWithoutTabel.ToString(), Encoding.UTF8);
-            }
+            });
+
+            await LogNotFoundedUsers(usersTrulyNotFound, pathToAccessFile);
+
+            return employeesForAccessTemplate.ToList();
 
 
-            return employeesForAccessTemplate;
-        }
+            //List<UserOfAccess> usersWithoutTabel = new List<UserOfAccess>();
+
+            //StringBuilder strUsersWithoutTabel = new StringBuilder();
+
+            //foreach (var user in usersOfAccess)
+            //{
+            //    if (!string.IsNullOrEmpty(user.TabNumber))
+            //    {
+
+            //        foreach (var empl in allEmployees)
+            //        {
+
+            //            if(empl.TabelNumber == user.TabNumber)
+            //            {
+
+            //                try
+            //                {
+            //                    var url = $"users/staff/{empl.Id}?token={token}";
+
+            //                    var response = await client.GetAsync(url);
+            //                    var responseBody = await response.Content.ReadAsStringAsync();
+
+            //                    var employeeExt = JsonSerializer.Deserialize<EmployeeExtensionData>(responseBody);
+
+            //                    if (employeeExt?.AccessTemplate != null)
+            //                    {
 
 
+            //                        var templatesID = employeeExt.AccessTemplate
+            //                            .SelectMany(dict => dict.Keys)
+            //                            .Select(int.Parse)
+            //                            .ToList();
 
-        
+            //                        if (!templatesID.Contains(AccessTemplateID) && !templatesID.Contains(649144485))
+            //                        {
+            //                            templatesID.Add(AccessTemplateID);
+            //                        }
+
+
+            //                        var employe = new EmployeeData
+            //                        {
+            //                            Id = empl.Id,
+            //                            LastName = empl.LastName,
+            //                            FirstName = empl.FirstName,
+            //                            MiddleName = empl.MiddleName,
+            //                            Division = empl.DivisionId,
+            //                            TabelNumber = empl.TabelNumber,
+            //                            AccessTemplate = templatesID
+
+            //                        };
+
+            //                        employeesForAccessTemplate.Add(employe);
+            //                    }
+
+
+            //                }
+            //                catch (Exception ex )
+            //                {
+
+            //                    Logger.Log($"Ошибка в MassAccessService.Controllers.AccessTemplatesController.CreateListOfEmployeesForAccessTemplate: {ex.Message} \n{empl.LastName} {empl.FirstName} divName: {empl.DivisionName} divID: {empl.DivisionId} ");
+            //                }
+
+
+            //            }
+
+            //        }
+
+            //    }
+            //    else
+            //    {
+            //        usersWithoutTabel.Add(user);
+            //    }
+            //}
+
+            //if(usersWithoutTabel != null && usersWithoutTabel.Count>0)
+            //{
+            //    foreach (var user in usersWithoutTabel)
+            //    {
+            //        strUsersWithoutTabel.Append(user.FIO);
+            //        strUsersWithoutTabel.Append(", ");
+            //        strUsersWithoutTabel.Append(user.Department);
+            //        strUsersWithoutTabel.Append(Environment.NewLine);
+            //    }
+
+            //    await File.WriteAllTextAsync(pathToAccessFile + $"WithoutTabel{DateTime.Now.ToString("yyyy-MM-dd")}.txt", strUsersWithoutTabel.ToString(), Encoding.UTF8);
+            //}
+
+
+            //return employeesForAccessTemplate;
+        }  
 
     }
 }

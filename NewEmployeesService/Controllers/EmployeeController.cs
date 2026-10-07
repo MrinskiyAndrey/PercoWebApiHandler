@@ -103,7 +103,8 @@ namespace NewEmployeesService.Controllers
                             FirstName = employee.FirstName,
                             LastName = employee.LastName,
                             MiddleName = employee.MiddleName,
-                            HiringDate = DateTime.Today.ToString("yyyy-MM-dd")
+                            HiringDate = DateTime.Today.ToString("yyyy-MM-dd"),
+                            WorkSchedule = 37622 // график "Всегда"
 
                         });
                     }
