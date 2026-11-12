@@ -20,22 +20,22 @@ namespace UnloadingEventsService.Models
         public string? DivisionName { get; set; }
 
         [JsonPropertyName("division")]
-        public int Division { get; set; }
+        public int? Division { get; set; }
 
         [JsonPropertyName("event_name")]
         public string? EventName { get; set; }
 
         [JsonPropertyName("event_name_id")]
-        public int EventNameId { get; set; }
+        public int? EventNameId { get; set; }
 
         [JsonPropertyName("device_name")]
         public string? DeviceName { get; set; }
 
         [JsonPropertyName("device_id")]
-        public int DeviceId { get; set; }
+        public int? DeviceId { get; set; }
 
         [JsonPropertyName("device_zone_id")]
-        public int DeviceZoneId { get; set; }
+        public int? DeviceZoneId { get; set; }
 
         [JsonPropertyName("ip_address")]
         public string? IpAddress { get; set; }
@@ -44,7 +44,7 @@ namespace UnloadingEventsService.Models
         public string? ResName { get; set; }
 
         [JsonPropertyName("res_id")]
-        public int ResId { get; set; }
+        public int? ResId { get; set; }
 
         [JsonPropertyName("rst_name")]
         public string? RstName { get; set; }
@@ -56,7 +56,7 @@ namespace UnloadingEventsService.Models
         public string? TypResourceField { get; set; }
 
         [JsonPropertyName("resource_number")]
-        public int ResourceNumber { get; set; }
+        public int? ResourceNumber { get; set; }
 
         [JsonPropertyName("identifier")]
         public string? Identifier { get; set; }
@@ -65,22 +65,22 @@ namespace UnloadingEventsService.Models
         public int? IdentType { get; set; }
 
         [JsonPropertyName("resource_type")]
-        public int ResourceType { get; set; }
+        public int? ResourceType { get; set; }
 
         [JsonPropertyName("device_type_id")]
-        public int DeviceTypeId { get; set; }
+        public int? DeviceTypeId { get; set; }
 
         [JsonPropertyName("zone_exit")]
         public string? ZoneExit { get; set; }
 
         [JsonPropertyName("zone_exit_id")]
-        public int ZoneExitId { get; set; }
+        public int? ZoneExitId { get; set; }
 
         [JsonPropertyName("zone_enter")]
         public string? ZoneEnter { get; set; }
 
         [JsonPropertyName("zone_enter_id")]
-        public int ZoneEnterId { get; set; }
+        public int? ZoneEnterId { get; set; }
 
         [JsonPropertyName("user_name")]
         public string? UserName { get; set; }
@@ -89,19 +89,19 @@ namespace UnloadingEventsService.Models
         public int? OperatorId { get; set; }
 
         [JsonPropertyName("user_id")]
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
 
         [JsonPropertyName("category")]
         public string? Category { get; set; }
 
         [JsonPropertyName("category_id")]
-        public int CategoryId { get; set; }
+        public int? CategoryId { get; set; }
 
         [JsonPropertyName("subcategory")]
         public string? Subcategory { get; set; }
 
         [JsonPropertyName("subcategory_id")]
-        public int SubcategoryId { get; set; }
+        public int? SubcategoryId { get; set; }
 
         [JsonPropertyName("position_name")]
         public string? PositionName { get; set; }
@@ -113,7 +113,7 @@ namespace UnloadingEventsService.Models
         public string? Description { get; set; }
 
         [JsonPropertyName("id")]
-        public int Id { get; set; }
+        public int? Id { get; set; }
 
         [JsonPropertyName("db_time_label")]
         public string? DbTimeLabel { get; set; }

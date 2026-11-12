@@ -16,8 +16,8 @@ namespace UnloadingEventsService.Controllers
         private const int ZoneKpp1 = 13739;
         private const int ZoneKpp2 = 28439844;
 
-        private const int EventEnter = 17;
-        private const int EventExit = 529;
+        private const int EventEnter = 17;      // Проход по идентификатору
+        private const int EventEnter2 = 529;    // Проход по идентификатору с нарушением времени
 
         public static long ConvertToIdentifier(int series, int number)
         {
@@ -185,7 +185,7 @@ namespace UnloadingEventsService.Controllers
                 }
 
                 if (string.IsNullOrEmpty(eventRow.TabelNumber)) continue;
-                if (eventRow.EventNameId != EventEnter && eventRow.EventNameId != EventExit) continue;
+                if (eventRow.EventNameId != EventEnter && eventRow.EventNameId != EventEnter2) continue;
 
                 int? direction = null;
                 if (eventRow.ZoneExitId == ZoneUncontrolled &&
